@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2f5d46"/><stop offset="1" stop-color="#1d3d2e"/></linearGradient>
+    <clipPath id="c"><rect width="512" height="512"/></clipPath>
+  </defs>
+  <g clip-path="url(#c)">
+    <rect width="512" height="512" fill="url(#sky)"/>
+    <!-- montagne -->
+    <path d="M-10 420 L150 228 L222 300 L322 168 L522 420 V522 H-10 Z" fill="#3f7a5c"/>
+    <path d="M322 168 L284 218 L304 214 L322 236 L340 212 L362 220 Z" fill="#e8efe9"/>
+    <path d="M-10 470 L120 372 L230 432 L360 350 L522 452 V522 H-10 Z" fill="#285040"/>
+    <!-- traccia a forma di spunta -->
+    <path d="M112 282 L210 378 L404 168" fill="none" stroke="#ffffff" stroke-width="58" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- segnavia bianco-rosso -->
+    <g transform="translate(300 92) scale(1.0)">
+      <rect x="0" y="0" width="92" height="22" rx="4" fill="#c8322b"/>
+      <rect x="0" y="22" width="92" height="22" fill="#ffffff"/>
+      <rect x="0" y="44" width="92" height="22" rx="4" fill="#c8322b"/>
+      <rect x="0" y="40" width="92" height="8" fill="#c8322b"/>
+      <rect x="0" y="18" width="92" height="8" fill="#c8322b"/>
+      <rect x="0" y="24" width="92" height="18" fill="#ffffff"/>
+    </g>
+  </g>
+</svg>
