@@ -1,5 +1,5 @@
 /* Traccia Giusta · service worker: apre l'app anche senza connessione */
-const VERSIONE = "tg-1.0.0";
+const VERSIONE = "tg-1.1.0";
 const BASE = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./icon-maskable-192.png", "./icon-maskable-512.png", "./apple-touch-icon.png", "./favicon-32.png", "./logo.svg"];
 const LIBRERIE = ["https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css", "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js", "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"];
 
@@ -25,10 +25,15 @@ self.addEventListener("fetch", e => {
   // icone, librerie e caratteri: prima la copia salvata
   const statico = url.origin === location.origin || url.hostname === "cdnjs.cloudflare.com" || url.hostname.endsWith("gstatic.com") || url.hostname === "fonts.googleapis.com";
   if (statico) {
-    e.respondWith(caches.match(req).then(hit => hit || fetch(req).then(r => {
-      if (r.ok || r.type === "opaque") { const c = r.clone(); caches.open(VERSIONE).then(x => x.put(req, c)); }
-      return r;
-    })));
+    // stale-while-revalidate: risposta immediata dalla copia salvata, aggiornata in background
+    e.respondWith(caches.match(req).then(hit => {
+      const rete = fetch(req).then(r => {
+        if (r.ok || r.type === "opaque") { const c = r.clone(); caches.open(VERSIONE).then(x => x.put(req, c)); }
+        return r;
+      });
+      if (hit) { rete.catch(() => {}); return hit; }
+      return rete;
+    }));
   }
   // dati di OpenStreetMap, quote e mappe: sempre dalla rete
 });

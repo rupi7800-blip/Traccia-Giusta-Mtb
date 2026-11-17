@@ -14,7 +14,13 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Traccia Giusta">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;700;800&family=Source+Sans+3:wght@400;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+<link rel="preconnect" href="https://tile.openstreetmap.org" crossorigin>
+<link rel="dns-prefetch" href="https://overpass-api.de">
+<link rel="dns-prefetch" href="https://nominatim.openstreetmap.org">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;700;800&family=Source+Sans+3:wght@400;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;700;800&family=Source+Sans+3:wght@400;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap"></noscript>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
@@ -183,6 +189,103 @@ body.fs-on{overflow:hidden}
 .note{font-size:.85rem;color:var(--muted);border-left:3px solid var(--contour);padding-left:10px;margin:0}
 .note code{font-size:.8rem}
 @media (max-width:460px){.rank{width:46px}.score{font-size:1.7rem}#map{height:340px}}
+
+/* ===== Restyling 1.1: natura, montagna, sentieri ===== */
+:root{
+  --bg:#f2f0e8; --surface:#fffdf8; --ink:#1b2820; --muted:#5c6a60; --line:#dcdfd2;
+  --forest:#2b5a43; --forest-2:#1f4533; --sage:#a9bfa9; --sage-soft:#e6ede2; --earth:#8b6b45; --rock:#6a7378;
+  --btn:#2b5a43; --btn-ink:#ffffff; --contour:#8b6b45;
+  --r:14px; --shadow:0 1px 2px rgba(27,40,32,.06),0 6px 18px rgba(27,40,32,.07);
+  --ease:cubic-bezier(.2,.7,.2,1);
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#101612; --surface:#18211c; --line:#2b372f; --forest:#8cc8a5; --forest-2:#6fb08c; --sage:#3b5244; --sage-soft:#1f2b24;
+  --earth:#c4a47c; --rock:#9aa5aa; --btn:#8cc8a5; --btn-ink:#0f1a13; --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 18px rgba(0,0,0,.25)}}
+:root[data-theme="dark"]{
+  --bg:#101612; --surface:#18211c; --line:#2b372f; --forest:#8cc8a5; --forest-2:#6fb08c; --sage:#3b5244; --sage-soft:#1f2b24;
+  --earth:#c4a47c; --rock:#9aa5aa; --btn:#8cc8a5; --btn-ink:#0f1a13; --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 18px rgba(0,0,0,.25)}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation-duration:.001ms!important;transition-duration:.001ms!important}}
+body{background:var(--bg) radial-gradient(1200px 400px at 50% -120px,var(--sage-soft),transparent 70%) no-repeat}
+.wrap{gap:22px}
+h2{font-size:1.4rem;letter-spacing:.03em;scroll-margin-top:68px}
+h2::before{content:"";display:inline-block;width:10px;height:10px;margin-right:10px;border-radius:2px 8px 2px 8px;background:var(--sage);vertical-align:.08em}
+.panel,.card,.poi-box,.sv-item,.mergebar{border-radius:var(--r);box-shadow:var(--shadow)}
+.panel{padding:18px;gap:16px}
+/* testata */
+header{position:relative;overflow:hidden;gap:14px;padding:22px 20px 18px;border-radius:20px;color:#fff;
+  background:linear-gradient(160deg,#2b5a43 0%,#1f4533 60%,#17372a 100%);box-shadow:var(--shadow)}
+header::before{content:"";position:absolute;inset:0;opacity:.18;pointer-events:none;
+  background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='420' height='160' viewBox='0 0 420 160'><g fill='none' stroke='%23fff' stroke-width='1.2'><path d='M-10 120C60 70 110 130 170 90S280 40 340 80s80 30 100 10'/><path d='M-10 138C60 92 110 148 170 108S280 62 340 100s80 30 100 10'/><path d='M-10 102C60 50 110 112 170 72S280 22 340 60s80 30 100 10'/><path d='M-10 84C60 32 110 94 170 54S280 4 340 42s80 30 100 10'/></g></svg>") center/cover no-repeat}
+header>*{position:relative}
+header h1{font-size:2.5rem;color:#fff}
+header .sub{color:rgba(255,255,255,.86)}
+header .brand img{box-shadow:0 2px 8px rgba(0,0,0,.35)}
+header .install{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.35);color:#fff}
+header .install .hint{color:rgba(255,255,255,.85)}
+header .install-help{background:rgba(0,0,0,.2);border-color:rgba(255,255,255,.35);color:#fff}
+header .btn{background:#fff;color:#1f4533}
+.quick{display:flex;gap:8px;flex-wrap:wrap}
+.quick a,.quick button{font:inherit;font-weight:700;font-size:.92rem;text-decoration:none;display:inline-flex;align-items:center;gap:7px;min-height:44px;padding:0 14px;border-radius:999px;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.12);color:#fff;cursor:pointer;transition:background .2s var(--ease),transform .2s var(--ease)}
+.quick a:hover,.quick button:hover{background:rgba(255,255,255,.24)}
+.quick .go{background:#fff;color:#1f4533;border-color:#fff}
+.quick svg{width:18px;height:18px;flex:none}
+.quick a:active,.quick button:active{transform:scale(.97)}
+/* controlli */
+input[type=text],input[type=search],select{border-radius:10px;min-height:44px;background:var(--surface);transition:border-color .2s,box-shadow .2s}
+input[type=text]:focus,input[type=search]:focus,select:focus{outline:0;border-color:var(--forest);box-shadow:0 0 0 3px color-mix(in srgb,var(--forest) 25%,transparent)}
+input[type=range]{accent-color:var(--forest);height:28px}
+.btn{background:var(--btn);color:var(--btn-ink);border-radius:12px;min-height:44px;padding:10px 18px;box-shadow:0 1px 0 rgba(0,0,0,.12);transition:transform .15s var(--ease),filter .2s,box-shadow .2s}
+.btn:hover:not(:disabled){filter:brightness(1.08)}
+.btn:active:not(:disabled){transform:translateY(1px) scale(.985)}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line);box-shadow:none}
+.btn.ghost:hover:not(:disabled){background:var(--sage-soft);filter:none}
+.tab{min-height:44px;border-radius:999px;padding:6px 14px;transition:background .2s,color .2s}
+.tab[aria-selected=true]{background:var(--forest);border-color:var(--forest);color:var(--btn-ink)}
+.scale-pick button{min-height:38px;border-radius:999px}
+.mapbtn{min-height:40px;border-radius:10px;transition:background .2s}
+.mapbtn:hover{background:var(--sage-soft)}
+.check{min-height:36px}
+.check input,.pick input{accent-color:var(--forest)}
+.pick{min-height:40px}
+summary{min-height:36px;display:flex;align-items:center}
+.req{background:var(--sage-soft);border-color:transparent;border-radius:12px}
+.note{border-left-color:var(--earth)}
+/* schede dei sentieri */
+.card{position:relative;padding:16px 16px 14px 20px;border-color:var(--line);overflow:hidden;transition:transform .2s var(--ease),box-shadow .2s;animation:rise .35s var(--ease) both}
+.card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:6px;background:var(--lc,var(--sage))}
+.card:hover{transform:translateY(-2px)}
+.card.sel{border-color:var(--forest);box-shadow:0 0 0 2px var(--forest),var(--shadow)}
+.card-title{font-size:1.12rem;line-height:1.25}
+.score{font-size:2.1rem}
+.rank{width:60px;padding:6px 0;border-radius:12px;background:var(--sage-soft)}
+.metrics{gap:10px 14px;padding:10px 12px;border-radius:12px;background:var(--sage-soft)}
+.m b{font-size:1.02rem}
+.chip{font-size:.74rem;padding:3px 9px;border-radius:999px}
+.tag{border-radius:999px;padding:3px 9px}
+.tag.own{background:color-mix(in srgb,var(--forest) 12%,transparent)}
+.viz{border-radius:12px;overflow:hidden}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.results .card:nth-child(2){animation-delay:.04s}.results .card:nth-child(3){animation-delay:.08s}.results .card:nth-child(n+4){animation-delay:.12s}
+/* mappa */
+#map{border-radius:var(--r);box-shadow:var(--shadow)}
+.leaflet-touch .leaflet-bar a{width:40px;height:40px;line-height:40px}
+.tg-ctrl{width:40px!important;height:40px!important}
+.here{background:var(--forest-2);min-height:40px}
+.fs-step{width:48px;height:52px}
+/* stato e caricamento */
+.status{min-height:1.4em;display:flex;align-items:center;gap:8px}
+.status.busy::before{content:"";width:14px;height:14px;flex:none;border-radius:50%;border:2px solid var(--sage);border-top-color:var(--forest);animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.skel{height:150px;border-radius:var(--r);border:1px solid var(--line);background:linear-gradient(100deg,var(--surface) 30%,var(--sage-soft) 50%,var(--surface) 70%) 0 0/300% 100%;animation:shimmer 1.3s linear infinite}
+@keyframes shimmer{to{background-position:-300% 0}}
+.empty{border:1px dashed var(--line);border-radius:var(--r);background:var(--surface);padding:28px 20px}
+@media (max-width:460px){
+  header{padding:18px 16px 14px;border-radius:16px}header h1{font-size:2.1rem}
+  .quick a,.quick button{flex:1 1 calc(50% - 8px);justify-content:center}
+  .btn{padding:10px 14px}.actions .btn{flex:1 1 auto}
+}
+@media (min-width:900px){.wrap{max-width:860px}}
 </style>
 </head>
 <body>
@@ -195,6 +298,13 @@ body.fs-on{overflow:hidden}
     </div>
     <div class="install-help" id="install-help" hidden></div>
     <p class="sub">Sentieri MTB, escursioni a piedi e piste ciclabili in tutta Italia. Descrivi l'uscita che vuoi: l'app analizza i percorsi di OpenStreetMap e le tue tracce GPX e ti dice qual è il più adatto, e perché.</p>
+    <nav class="quick" aria-label="Accesso rapido">
+      <button class="go" type="button" onclick="document.getElementById('near').click()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>Vicino a me</button>
+      <a href="#h-src"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l5 5"/></svg>Cerca</a>
+      <a href="#h-map"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/></svg>Mappa</a>
+      <a href="#h-res"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 19l6-10 4 6 3-4 5 8z"/></svg>Classifica</a>
+      <a href="#miei"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.8-4.5 4.2 1.1 6-5.4-3-5.4 3 1.1-6L3.2 9.4l6.1-.8z"/></svg>I miei</a>
+    </nav>
   </header>
 
   <section class="panel" aria-labelledby="h-pref">
@@ -578,7 +688,7 @@ function render(){
     if(G.ebike&&A.ebike)ms.push([Math.round(batteryWh(a))+" Wh","batteria"]);
     const aval=t.act==="skialp"?`<li class="link"><a href="https://www.aineva.it/bollettino/" target="_blank" rel="noopener">Bollettino valanghe AINEVA: consultalo prima di partire</a></li>`:"";
     const link=aval+(t.osmId?`<li class="link"><a href="https://www.openstreetmap.org/${t.osmType||"relation"}/${t.osmId}" target="_blank" rel="noopener">Apri su OpenStreetMap</a></li>`:"");
-    return`<article class="card${t.id===selId?" sel":""}${picked.has(t.id)?" picked":""}" id="card-${t.id}">
+    return`<article class="card${t.id===selId?" sel":""}${picked.has(t.id)?" picked":""}" id="card-${t.id}" style="--lc:${lc}">
       <div class="rank"><span class="score" style="color:${col}">${score}</span><small>su 100</small></div>
       <div class="card-main"><h3 class="card-title">${esc(t.name)}</h3>
         <div class="tags"><span class="tag">${dashSVG(t.act,lc)} ${A.label}</span>${lvl}<span class="tag src-${t.source}">${SRC[t.source]}</span>${a.loop?'<span class="tag">anello</span>':""}${miss&&!own?'<span class="tag miss">da verificare</span>':""}${OWN.has(t.source)?'<span class="tag own">tua traccia</span>':t.pinned?'<span class="tag own">scelto da te</span>':""}${t.saved?'<span class="tag own">★ salvato</span>':""}</div>
@@ -659,7 +769,7 @@ function locate(center,search){
   wantCenter=center;wantSearch=search;setStatus("Rilevo la tua posizione…");startWatch();
 }
 document.addEventListener("visibilitychange",()=>{if(document.hidden){watchWasOn=watchId!=null;stopWatch();}else if(watchWasOn){startWatch();}});
-function refresh(){if(busy)return;if(lastSearch)runSearch(lastSearch.center,lastSearch.label);else $("search").click();}
+function refresh(){if(busy)return;if(lastSearch)runSearch(lastSearch.center,lastSearch.label,true);else $("search").click();}
 function selectTrack(id,fit){
   if(draw.on)return;if(id!==selId&&map)map.closePopup();
   selId=id;document.querySelectorAll(".card.sel").forEach(c=>c.classList.remove("sel"));
@@ -680,20 +790,44 @@ $("gpx").onchange=async e=>{
   e.target.value="";render();imported.forEach(autoSave);
 };
 let toastT=null;
-function setStatus(t,err){const s=$("status");s.textContent=t;s.className="status"+(err?" err":"");
+function setStatus(t,err,busy){const s=$("status");s.textContent=t;s.className="status"+(err?" err":"")+(busy?" busy":"");
   const ts=$("fs-toast");if(!ts)return;ts.textContent=t;ts.hidden=!t;clearTimeout(toastT);if(t)toastT=setTimeout(()=>{ts.hidden=true;},err?8000:4500);}
 
 /* ---------- ricerca live ---------- */
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const OVERPASS=["https://overpass-api.de/api/interpreter","https://overpass.private.coffee/api/interpreter"];
-async function overpass(q){
+/* fetch con timeout: una richiesta ferma non blocca più l'app */
+async function fetchT(url,opt,ms){
+  const ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),ms||30000);
+  try{return await fetch(url,Object.assign({},opt,{signal:ctl.signal}));}
+  catch(e){if(e&&e.name==="AbortError")throw new Error("Il servizio non risponde in tempo. Controlla la connessione e riprova.");throw e;}
+  finally{clearTimeout(tm);}
+}
+/* cache in memoria (solo sessione): stessa richiesta uguale entro pochi minuti = nessuna nuova chiamata.
+   Le richieste in corso identiche vengono condivise. "Aggiorna" salta sempre la cache. */
+const NET_TTL=5*60*1000,netCache=new Map();let netFresh=false;
+function cached(key,ttl,fn){
+  const h=netCache.get(key);
+  if(!netFresh&&h&&Date.now()-h.t<ttl)return h.p;
+  const p=fn();netCache.set(key,{t:Date.now(),p});
+  p.catch(()=>{if(netCache.get(key)&&netCache.get(key).p===p)netCache.delete(key);});
+  if(netCache.size>40)netCache.delete(netCache.keys().next().value);
+  return p;
+}
+function overpass(q){return cached("op|"+q,NET_TTL,()=>overpassRaw(q));}
+async function overpassRaw(q){
   let lastErr;
-  for(const url of OVERPASS){try{const r=await fetch(url,{method:"POST",body:"data="+encodeURIComponent(q),headers:{"Content-Type":"application/x-www-form-urlencoded"}});
-    if(r.ok)return await r.json();lastErr=new Error("Il server di OpenStreetMap è occupato (errore "+r.status+"). Riprova tra un minuto o riduci il raggio.");}catch(e){lastErr=e;}}
+  for(let giro=0;giro<2;giro++){
+    for(const url of OVERPASS){try{const r=await fetchT(url,{method:"POST",body:"data="+encodeURIComponent(q),headers:{"Content-Type":"application/x-www-form-urlencoded"}},45000);
+      if(r.ok)return await r.json();lastErr=new Error("Il server di OpenStreetMap è occupato (errore "+r.status+"). Riprova tra un minuto o riduci il raggio.");}catch(e){lastErr=e;}}
+    if(giro===0)await sleep(1200);
+  }
   throw lastErr;
 }
-async function geocode(q){
-  const r=await fetch("https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=it&accept-language=it&q="+encodeURIComponent(q));
+/* i nomi di località non cambiano: cache più lunga */
+function geocode(q){return cached("geo|"+q.trim().toLowerCase(),60*60*1000,()=>geocodeRaw(q));}
+async function geocodeRaw(q){
+  const r=await fetchT("https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=it&accept-language=it&q="+encodeURIComponent(q),null,15000);
   if(!r.ok)throw new Error("Ricerca della località non riuscita.");const j=await r.json();
   if(!j.length)throw new Error(`Non trovo "${q}" in Italia. Prova con il nome del comune.`);
   return{lat:+j[0].lat,lon:+j[0].lon,name:j[0].display_name.split(",").slice(0,2).join(",")};
@@ -724,7 +858,7 @@ async function addElevationBatch(batch){
   const n=Math.floor(100/batch.length),sets=batch.map(t=>samplesN(t.pts,n));
   const flat=sets.flat();
   const url="https://api.opentopodata.org/v1/eudem25m?locations="+flat.map(p=>p.lat.toFixed(5)+","+p.lon.toFixed(5)).join("|");
-  const r=await fetch(url);if(r.status===429)throw Object.assign(new Error("limite"),{limit:true});if(!r.ok)throw new Error("quote");
+  const r=await fetchT(url,null,20000);if(r.status===429)throw Object.assign(new Error("limite"),{limit:true});if(!r.ok)throw new Error("quote");
   const j=await r.json();let k=0;
   return sets.map(s=>s.map(p=>({lat:p.lat,lon:p.lon,ele:j.results[k]?j.results[k++].elevation:(k++,null)})));
 }
@@ -737,9 +871,10 @@ async function runElevQueue(){
   try{for(;;){
     const cand=tracks.filter(needsElev);if(!cand.length)break;
     if(elevCalls>=200){stopMsg="Ho raggiunto il limite di verifiche per questa sessione: ricarica la pagina per continuare.";break;}
-    cand.sort((a,b)=>scoreTrack(b,b.a,G).score-scoreTrack(a,a.a,G).score);
+    const sc=new Map(cand.map(t=>[t.id,scoreTrack(t,t.a,G).score]));
+    cand.sort((a,b)=>sc.get(b.id)-sc.get(a.id));
     const batch=cand.slice(0,2);batch.forEach(t=>elevTried.add(t.id));
-    setStatus(`Verifico i requisiti con le quote: ${cand.length} percors${cand.length===1?"o":"i"} da controllare…`);
+    setStatus(`Verifico i requisiti con le quote: ${cand.length} percors${cand.length===1?"o":"i"} da controllare…`,false,true);
     try{const res=await addElevationBatch(batch);batch.forEach((t,i)=>{t.elevPts=res[i];t.a=analyze(t);if(saved.has(t.id))persist(t);});elevCalls++;did=true;}
     catch(e){if(e.limit){stopMsg="Il servizio delle quote ha raggiunto il limite giornaliero: alcuni percorsi restano da verificare.";break;}}
     render();await sleep(1100);
@@ -748,15 +883,19 @@ async function runElevQueue(){
   else if(did)setStatus(`Verifica completata: ${lastCounts.pass} percors${lastCounts.pass===1?"o rispetta":"i rispettano"} tutti i requisiti${lastCounts.miss?`, ${lastCounts.miss} da verificare`:""}, ${lastCounts.fail} esclus${lastCounts.fail===1?"o":"i"}.`);
 }
 let busy=false;
-async function runSearch(center,label){
+async function runSearch(center,label,fresh){
+  netFresh=!!fresh;
   const acts=Object.keys(ACT).filter(k=>G.search[k]),pois=Object.keys(POI).filter(k=>G.poi[k]);
   if(!acts.length&&!pois.length){setStatus("Scegli almeno un'attività o un tipo di luogo da cercare.",true);return;}
   busy=true;$("search").disabled=$("near").disabled=$("refresh").disabled=true;$("here").hidden=true;
   lastSearch={center:{lat:center.lat,lon:center.lon},label};
   const R=+$("s-rad").value*1000,c=`${center.lat.toFixed(5)},${center.lon.toFixed(5)}`;
   searchCenter=[center.lat,center.lon];initMap();drawRadius();zoomToRadius(searchCenter);
-  setStatus(`Cerco ${[...acts.map(a=>ACT[a].label.toLowerCase()),...pois.map(k=>POI[k].plural)].join(", ")} attorno a ${label}…`);
+  setStatus(`Cerco ${[...acts.map(a=>ACT[a].label.toLowerCase()),...pois.map(k=>POI[k].plural)].join(", ")} attorno a ${label}…`,false,true);
+  if(acts.length&&!tracks.some(t=>!isOwn(t)&&t.source!=="esempio"))$("results").innerHTML='<div class="skel" aria-hidden="true"></div><div class="skel" aria-hidden="true"></div>';
   try{
+    /* luoghi e percorsi sono richieste indipendenti: partono insieme */
+    const poiP=pois.length?searchPOI(R,c,pois):null;if(poiP)poiP.catch(()=>{});
     if(acts.length){
       const parts=[];
       if(acts.includes("mtb"))parts.push(`rel["route"="mtb"](around:${R},${c});`);
@@ -787,14 +926,15 @@ async function runSearch(center,label){
       else{found.forEach(t=>{t.a=analyze(t);t.pre=scoreTrack(t,t.a,G).score;});found.sort((a,b)=>b.pre-a.pre);
         const have=new Set(tracks.map(t=>t.id));tracks.push(...found.filter(f=>!have.has(f.id)));
         const cnt=acts.map(a=>`${found.filter(t=>t.act===a).length} ${ACT[a].label.toLowerCase()}`).join(", ");
-        setStatus(`Trovati ${found.length} percorsi (${cnt}). Verifico i requisiti…`);}
+        setStatus(`Trovati ${found.length} percorsi (${cnt}). Verifico i requisiti…`,false,true);}
       selId=null;fitted="";render();
     }
-    if(pois.length){await searchPOI(R,c,pois);if(!acts.length)setStatus(`Trovati ${poiData.length} luoghi.`);}
+    if(pois.length){await poiP;if(!acts.length)setStatus(`Trovati ${poiData.length} luoghi.`);}
     else{poiData=[];drawPOI();}
   }catch(err){
     setStatus(err instanceof TypeError?"Non riesco a raggiungere OpenStreetMap. Controlla la connessione e riprova.":err.message,true);
-  }finally{busy=false;$("search").disabled=$("near").disabled=$("refresh").disabled=false;}
+    render();
+  }finally{netFresh=false;busy=false;$("search").disabled=$("near").disabled=$("refresh").disabled=false;}
 }
 
 /* ---------- luoghi: campeggi, agricampeggi, SUP ---------- */
@@ -966,7 +1106,7 @@ const draw={on:false,way:[],segs:[]};let drawLayer=null;
 const BROUTER={mtb:["trekking"],hike:["hiking-beta","trekking"],skialp:["hiking-beta","trekking"],bike:["safety","trekking"]};
 async function routeSeg(a,b){
   for(const prof of BROUTER[G.tab]){try{
-    const r=await fetch(`https://brouter.de/brouter?lonlats=${a.lng.toFixed(6)},${a.lat.toFixed(6)}|${b.lng.toFixed(6)},${b.lat.toFixed(6)}&profile=${prof}&alternativeidx=0&format=geojson`);
+    const r=await fetchT(`https://brouter.de/brouter?lonlats=${a.lng.toFixed(6)},${a.lat.toFixed(6)}|${b.lng.toFixed(6)},${b.lat.toFixed(6)}&profile=${prof}&alternativeidx=0&format=geojson`,null,20000);
     if(!r.ok)continue;const j=await r.json();const c=j.features&&j.features[0]&&j.features[0].geometry.coordinates;
     if(c&&c.length>1)return c.map(q=>({lat:q[1],lon:q[0],ele:q[2]!=null?q[2]:null}));}catch(e){}}
   return null;
@@ -1106,7 +1246,7 @@ async function loadRelation(id,btn){if(btn)btn.disabled=true;setStatus("Carico i
 }
 $("n-go").onclick=searchByName;
 $("n-name").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();searchByName();}});
-let nameFilter="";$("f-name").oninput=e=>{nameFilter=e.target.value;render();};
+let nameFilter="",nameTimer=null;$("f-name").oninput=e=>{nameFilter=e.target.value;clearTimeout(nameTimer);nameTimer=setTimeout(render,180);};
 
 /* ---------- salvataggi in locale (IndexedDB, con riserva su localStorage) ---------- */
 const Store={db:null,
@@ -1288,6 +1428,6 @@ try{const az=new URLSearchParams(location.search).get("azione");if(az==="vicino"
   if(location.hash==="#miei")setTimeout(()=>$("miei").scrollIntoView(),400);}catch(e){}
 if(typeof module!=="undefined")module.exports={analyze,scoreTrack,groupCycleways,EXAMPLES,G,get tracks(){return tracks},set tracks(v){tracks=v},detectDuplicates,toGPX,ptsWithEle};
 </script>
-<script src="aggiornamenti.js" data-version="1.0.0"></script>
+<script src="aggiornamenti.js" data-version="1.1.0"></script>
 </body>
 </html>
