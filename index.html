@@ -255,7 +255,8 @@ summary{min-height:36px;display:flex;align-items:center}
 .req{background:var(--sage-soft);border-color:transparent;border-radius:12px}
 .note{border-left-color:var(--earth)}
 /* schede dei sentieri */
-.card{position:relative;padding:16px 16px 14px 20px;border-color:var(--line);overflow:hidden;transition:transform .2s var(--ease),box-shadow .2s;animation:rise .35s var(--ease) both}
+.card{position:relative;padding:16px 16px 14px 20px;border-color:var(--line);overflow:hidden;transition:transform .2s var(--ease),box-shadow .2s;}
+.card.new{animation:rise .35s var(--ease) both}
 .card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:6px;background:var(--lc,var(--sage))}
 .card:hover{transform:translateY(-2px)}
 .card.sel{border-color:var(--forest);box-shadow:0 0 0 2px var(--forest),var(--shadow)}
@@ -269,7 +270,7 @@ summary{min-height:36px;display:flex;align-items:center}
 .tag.own{background:color-mix(in srgb,var(--forest) 12%,transparent)}
 .viz{border-radius:12px;overflow:hidden}
 @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-.results .card:nth-child(2){animation-delay:.04s}.results .card:nth-child(3){animation-delay:.08s}.results .card:nth-child(n+4){animation-delay:.12s}
+.results .card.new:nth-child(2){animation-delay:.04s}.results .card.new:nth-child(3){animation-delay:.08s}.results .card.new:nth-child(n+4){animation-delay:.12s}
 /* mappa */
 #map{border-radius:var(--r);box-shadow:var(--shadow)}
 .leaflet-touch .leaflet-bar a{width:40px;height:40px;line-height:40px}
@@ -657,7 +658,7 @@ const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",
 const SRC={esempio:"Esempio · dati simulati",osm:"OpenStreetMap",gpx:"GPX importato",creata:"Creata da te",unita:"Unione di tracce"};
 const OWN=new Set(["gpx","creata","unita"]);
 const isOwn=t=>OWN.has(t.source)||!!t.pinned||!!t.saved;
-const picked=new Set();
+const picked=new Set(),seenCards=new Set();
 let lastOrder=[],lastCounts={pass:0,miss:0,fail:0};
 function render(){
   detectDuplicates();tracks.forEach(t=>{t.saved=saved.has(t.id);});
@@ -691,7 +692,8 @@ function render(){
     if(G.ebike&&A.ebike)ms.push([Math.round(batteryWh(a))+" Wh","batteria"]);
     const aval=t.act==="skialp"?`<li class="link"><a href="https://www.aineva.it/bollettino/" target="_blank" rel="noopener">Bollettino valanghe AINEVA: consultalo prima di partire</a></li>`:"";
     const link=aval+(t.osmId?`<li class="link"><a href="https://www.openstreetmap.org/${t.osmType||"relation"}/${t.osmId}" target="_blank" rel="noopener">Apri su OpenStreetMap</a></li>`:"");
-    return`<article class="card${t.id===selId?" sel":""}${picked.has(t.id)?" picked":""}" id="card-${t.id}" style="--lc:${lc}">
+    const isNew=!seenCards.has(t.id);seenCards.add(t.id);
+    return`<article class="card${isNew?" new":""}${t.id===selId?" sel":""}${picked.has(t.id)?" picked":""}" id="card-${t.id}" style="--lc:${lc}">
       <div class="rank"><span class="score" style="color:${col}">${score}</span><small>su 100</small></div>
       <div class="card-main"><h3 class="card-title">${esc(t.name)}</h3>
         <div class="tags"><span class="tag">${dashSVG(t.act,lc)} ${A.label}</span>${lvl}<span class="tag src-${t.source}">${SRC[t.source]}</span>${a.loop?'<span class="tag">anello</span>':""}${miss&&!own?'<span class="tag miss">da verificare</span>':""}${OWN.has(t.source)?'<span class="tag own">tua traccia</span>':t.pinned?'<span class="tag own">scelto da te</span>':""}${t.saved?'<span class="tag own">★ salvato</span>':""}</div>
@@ -822,7 +824,7 @@ async function overpassRaw(q){
   let lastErr;
   for(let giro=0;giro<2;giro++){
     for(const url of OVERPASS){try{const r=await fetchT(url,{method:"POST",body:"data="+encodeURIComponent(q),headers:{"Content-Type":"application/x-www-form-urlencoded"}},45000);
-      if(r.ok)return await r.json();lastErr=new Error("Il server di OpenStreetMap è occupato (errore "+r.status+"). Riprova tra un minuto o riduci il raggio.");}catch(e){lastErr=e;}}
+      if(r.ok){const j=await r.json();if(j&&j.remark)netCache.delete("op|"+q);return j;}lastErr=new Error("Il server di OpenStreetMap è occupato (errore "+r.status+"). Riprova tra un minuto o riduci il raggio.");}catch(e){lastErr=e;}}
     if(giro===0)await sleep(1200);
   }
   throw lastErr;
@@ -886,8 +888,9 @@ async function runElevQueue(){
   else if(did)setStatus(`Verifica completata: ${lastCounts.pass} percors${lastCounts.pass===1?"o rispetta":"i rispettano"} tutti i requisiti${lastCounts.miss?`, ${lastCounts.miss} da verificare`:""}, ${lastCounts.fail} esclus${lastCounts.fail===1?"o":"i"}.`);
 }
 let busy=false;
+let searchSeq=0;
 async function runSearch(center,label,fresh){
-  netFresh=!!fresh;
+  netFresh=!!fresh;const mySeq=++searchSeq;
   const acts=Object.keys(ACT).filter(k=>G.search[k]),pois=Object.keys(POI).filter(k=>G.poi[k]);
   if(!acts.length&&!pois.length){setStatus("Scegli almeno un'attività o un tipo di luogo da cercare.",true);return;}
   busy=true;$("search").disabled=$("near").disabled=$("refresh").disabled=true;$("here").hidden=true;
@@ -898,7 +901,7 @@ async function runSearch(center,label,fresh){
   if(acts.length&&!tracks.some(t=>!isOwn(t)&&t.source!=="esempio"))$("results").innerHTML='<div class="skel" aria-hidden="true"></div><div class="skel" aria-hidden="true"></div>';
   try{
     /* luoghi e percorsi sono richieste indipendenti: partono insieme */
-    const poiP=pois.length?searchPOI(R,c,pois):null;if(poiP)poiP.catch(()=>{});
+    const poiP=pois.length?searchPOI(R,c,pois,mySeq):null;if(poiP)poiP.catch(()=>{});
     if(acts.length){
       const parts=[];
       if(acts.includes("mtb"))parts.push(`rel["route"="mtb"](around:${R},${c});`);
@@ -954,18 +957,18 @@ function poiKind(t){
   if(t.leisure==="slipway"||t.canoe==="put_in"||t.sport)return"sup";
   return null;
 }
-async function searchPOI(R,c,pois){
+async function searchPOI(R,c,pois,mySeq){
   const a=`(around:${R},${c})`,parts=[];
   if(pois.includes("camp")||pois.includes("agri"))parts.push(`nwr["tourism"="camp_site"]${a};`);
   if(pois.includes("sup"))parts.push(`nwr["leisure"="slipway"]${a};nwr["canoe"="put_in"]${a};nwr["sport"~"stand_up_paddleboarding|paddle_boarding|canoe|kayak"]${a};`);
   if(pois.includes("rent"))parts.push(`nwr["amenity"="boat_rental"]${a};nwr["shop"="water_sports"]${a};`);
   const j=await overpass(`[out:json][timeout:60];(${parts.join("")});out center tags;`);
-  const seen=new Set();poiData=[];
+  const seen=new Set(),poiNew=[];
   for(const el of j.elements){const t=el.tags||{};const kind=poiKind(t);if(!kind||!pois.includes(kind))continue;
     const lat=el.lat!=null?el.lat:el.center&&el.center.lat,lon=el.lon!=null?el.lon:el.center&&el.center.lon;if(lat==null)continue;
     const k=el.type+el.id;if(seen.has(k))continue;seen.add(k);
-    poiData.push({id:k,type:el.type,osmId:el.id,kind,lat,lon,tags:t,name:t.name||POI[kind].one,dist:hav({lat,lon},lastSearch.center)});}
-  poiData.sort((x,y)=>x.dist-y.dist);drawPOI();
+    poiNew.push({id:k,type:el.type,osmId:el.id,kind,lat,lon,tags:t,name:t.name||POI[kind].one,dist:hav({lat,lon},lastSearch.center)});}
+  if(mySeq!==searchSeq)return;poiData=poiNew;poiData.sort((x,y)=>x.dist-y.dist);drawPOI();
 }
 function poiPopup(p){const t=p.tags,web=t.website||t["contact:website"],tel=t.phone||t["contact:phone"];
   const extra=[t.tents==="yes"?"tende":"",t.caravans==="yes"?"camper":"",t.toilets==="yes"?"bagni":"",t.shower==="yes"||t.shower==="hot"?"docce":"",t.drinking_water==="yes"?"acqua potabile":""].filter(Boolean).join(", ");

@@ -31,7 +31,7 @@ self.addEventListener("fetch", e => {
         if (r.ok || r.type === "opaque") { const c = r.clone(); caches.open(VERSIONE).then(x => x.put(req, c)); }
         return r;
       });
-      if (hit) { rete.catch(() => {}); return hit; }
+      if (hit) { e.waitUntil(rete.catch(() => {})); return hit; }
       return rete;
     }));
   }
